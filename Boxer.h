@@ -5,27 +5,38 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <ctime>
+#include <cstdlib>
 
 template <typename T>
 class Generation{
 public:
-	explicit Generation(const std::vector<T*>& _units) : num(_units.size()), units(_units) {}
+	typedef pair<float,T*> pft;
+	explicit Generation(const std::vector<T*>& _units) : num(_units.size()), units(_units) {srand(time());}
 	~Generation(){}
 	
-	void rival(const int t){
+	void rival(int t){
 		std::random_shuffle(units.begin(), units.end());
-		typedef pair<float,T*> pft;
 		std::vector<pft> scores(num,{0,nullptr});
 		for(size_t i=0;i<num;i++) scores[i].second = units[i];
 		while(t--){
-			for(size_t i=0;i<num-1;i+=2) challenge(i, i+1, scores);
-			if(num>2 && num%2) challenge(num-2, num-1, scores);
-			sort(scores.begin(), scores.end());
+			for(size_t i=0;i<num;i++) {
+				const size_t j = rand() % num;
+				challenge(i, j, scores);
+			}
 		}
+		std::sort(scores.begin(), scores.end());
 		for(size_t i=0;i<num;i++) units[i] = scores[i].second;
 	}
 	void survival(){
-		
+		std::random_shuffle(units.begin(), units.end());
+		std::vector<pft> scores(num,{0,nullptr});
+		for(size_t i=0;i<num;i++) {
+			scores[i].second = units[i];
+			scores[i].first = units[i]->perform();
+		}
+		std::sort(scores.begin(), scores.end());
+		for(size_t i=0;i<num;i++) units[i] = scores[i].second;
 	}
 	void mutate(){
 		
