@@ -7,6 +7,7 @@
 #include <cmath>
 #include <ctime>
 #include <cstdlib>
+#include <random>
 
 template <typename T>
 class Generation{
@@ -38,13 +39,16 @@ public:
 		std::sort(scores.begin(), scores.end());
 		for(size_t i=0;i<num;i++) units[i] = scores[i].second;
 	}
-	void mutate(){
-		
+	template <typename Distribution, typename Engine>
+	void mutate(int t, const param_type& pram){
+		Engine generator;
+		Distribution<size_t> distrib(pram);
+		while(t--){
+			size_t id = static_cast<size_t>(distrib(generator));
+			units[id]->mutate();
+		}
 	}
-	void eliminate(){
-		
-	}
-	void breed(){
+	void eliminate_breed(){
 		
 	}
 private:
