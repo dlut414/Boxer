@@ -8,6 +8,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <random>
+#include <unordered_map>
 
 template <typename T>
 class Generation{
@@ -26,7 +27,7 @@ public:
 				challenge(i, j, scores);
 			}
 		}
-		std::sort(scores.begin(), scores.end());
+		std::sort(scores.begin(), scores.end(), std::greater<pft>());
 		for(size_t i=0;i<num;i++) units[i] = scores[i].second;
 	}
 	void survival(){
@@ -36,7 +37,7 @@ public:
 			scores[i].second = units[i];
 			scores[i].first = units[i]->perform();
 		}
-		std::sort(scores.begin(), scores.end());
+		std::sort(scores.begin(), scores.end(), std::greater<pft>());
 		for(size_t i=0;i<num;i++) units[i] = scores[i].second;
 	}
 	template <typename Distribution, typename Engine>
@@ -48,8 +49,20 @@ public:
 			units[id]->mutate();
 		}
 	}
-	void eliminate_breed(){
-		
+	void eliminate_breed(size_t t, (float)(*die_possibility)(size_t)){
+		t = std::min(t, num-1);
+		std::unordered_map<size_t,int> death_list;
+		while(death_list.size() < t){
+			size_t i = rand() % num;
+			if(death_list.count(i)) continue;
+			float roll = float(rand()) / RAND_MAX;
+			if(roll <= die_possibility(i)) death_list[i]++;
+		}
+		for(auto it=death_list.begin();it!=death_list.end();++it){
+			size_t i = rand() % num;
+			while(death_list.count(i)) i = rand() % num;
+			units[it->first]->T(*units[i]);
+		}
 	}
 private:
 	template <typename P>
