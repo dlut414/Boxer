@@ -4,27 +4,25 @@
 #pragma once
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 template <typename T>
 class Generation{
 public:
-	Generation(const int n=1000) : num(n){}
+	explicit Generation(const std::vector<T*>& _units) : num(_units.size()), units(_units) {}
 	~Generation(){}
-	void generate(){
-		units = std::vector<T>(num, T());
-	}
-	void rival(){
+	
+	void rival(const int t){
 		std::random_shuffle(units.begin(), units.end());
-		typedef std::pair<int,int> pii;
-		std::vector<pii> scores_id(num);
-		for(int i=0;i<num-1;i+=2){
-			if(units[i].challenge(units[i+1])){
-				
-			}
-			else{
-				
-			}
+		typedef pair<float,T*> pft;
+		std::vector<pft> scores(num,{0,nullptr});
+		for(size_t i=0;i<num;i++) scores[i].second = units[i];
+		while(t--){
+			for(size_t i=0;i<num-1;i+=2) challenge(i, i+1, scores);
+			if(num>2 && num%2) challenge(num-2, num-1, scores);
+			sort(scores.begin(), scores.end());
 		}
+		for(size_t i=0;i<num;i++) units[i] = scores[i].second;
 	}
 	void survival(){
 		
@@ -39,6 +37,24 @@ public:
 		
 	}
 private:
-	int num;
-	std::vector<T> units;
+	template <typename P>
+	inline void challenge(const size_t a, const size_t b, const std::vector<P>& scores) const{
+		if(units[a]->challenge(units[b])) {
+			const auto pt = a_beat_b(a, b, scores.first[a], scores.first[b]);
+			scores.first[a] += pt;
+			scores.first[b] -= pt;
+		}
+		else {
+			const auto pt = a_beat_b(b, a, scores.first[b], scores.first[a]);
+			scores.first[b] += pt;
+			scores.first[a] -= pt;
+		}
+	}
+	template <typename S>
+	inline const S a_beat_b(const size_t a, const size_t b, const S sa, const S sb) const{
+		return 1 / (1 + exp(sa-sb));
+	}
+
+	size_t num;
+	std::vector<T*>& units;
 };
