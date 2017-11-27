@@ -14,7 +14,7 @@ template <typename T>
 class Generation{
 public:
 	typedef pair<float,T*> pft;
-	explicit Generation(const std::vector<T*>& _units) : num(_units.size()), units(_units) {srand(time());}
+	explicit Generation(const std::vector<T*>& _units) : num(_units.size()), units(_units) {srand(time(NULL));}
 	~Generation(){}
 	
 	void rival(int t){
@@ -41,15 +41,15 @@ public:
 		for(size_t i=0;i<num;i++) units[i] = scores[i].second;
 	}
 	template <typename Distribution, typename Engine>
-	void mutate(int t, const param_type& pram){
+	void mutate(int t, const typename Distribution::param_type& pram){
 		Engine generator;
-		Distribution<size_t> distrib(pram);
+		Distribution distrib(pram);
 		while(t--){
 			size_t id = static_cast<size_t>(distrib(generator));
 			units[id]->mutate();
 		}
 	}
-	void eliminate_breed(size_t t, (float)(*die_possibility)(size_t)){
+	void eliminate_breed(size_t t, float(*die_possibility)(size_t)){
 		t = std::min(t, num-1);
 		std::unordered_map<size_t,int> death_list;
 		while(death_list.size() < t){
